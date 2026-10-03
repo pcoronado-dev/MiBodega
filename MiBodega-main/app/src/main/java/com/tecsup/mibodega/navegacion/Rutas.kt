@@ -12,6 +12,7 @@ object Rutas {
     // ---- Rutas simples ----
     const val LOGIN = "login"
     const val CREAR_CUENTA = "crearCuenta"
+    const val PERFIL = "perfil"
     const val INICIO = "inicio"
     const val CARRITO = "carrito"
     const val DATOS_ENTREGA = "datosEntrega"
@@ -26,9 +27,9 @@ object Rutas {
 
     /**
      * Pantallas que muestran la NavigationBar inferior.
-     * Login y CrearCuenta NO entran: son pantallas previas almenu.
+     * Login y CrearCuenta NO entran: son pantallas previas al menu.
      */
-    val rutasConMenu = setOf(INICIO, DETALLE, CARRITO, DATOS_ENTREGA, CONFIRMACION)
+    val rutasConMenu = setOf(INICIO, DETALLE, CARRITO, DATOS_ENTREGA, CONFIRMACION, PERFIL)
 
     /** Cada ficha del menu: a donde lleva, como se llama y con que icono. */
     data class DestinoMenu(val ruta: String, val etiqueta: String, val icono: ImageVector)
@@ -37,7 +38,7 @@ object Rutas {
         DestinoMenu(INICIO, "Inicio", Icons.Default.Home),
         DestinoMenu(CARRITO, "Carrito", Icons.Default.ShoppingCart),
         DestinoMenu(CONFIRMACION, "Pedidos", Icons.Default.Receipt),
-        DestinoMenu(CREAR_CUENTA, "Perfil", Icons.Default.Person)
+        DestinoMenu(PERFIL, "Perfil", Icons.Default.Person)
     )
 
     const val COSTO_DELIVERY = 4.00

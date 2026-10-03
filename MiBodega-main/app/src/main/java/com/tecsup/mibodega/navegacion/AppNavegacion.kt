@@ -29,14 +29,15 @@ import com.tecsup.mibodega.ui.cliente.screens.detalle.PantallaDetalleProducto
 import com.tecsup.mibodega.ui.cliente.screens.entrega.PantallaDatosEntrega
 import com.tecsup.mibodega.ui.cliente.screens.inicio.PantallaInicio
 import com.tecsup.mibodega.ui.cliente.screens.login.PantallaLogin
+import com.tecsup.mibodega.ui.cliente.screens.perfil.PantallaPerfil
 
 /**
  * "Director de orquesta" de la app.
  *
  * Aqui viven las 3 cosas globales:
- *  1. El NavHost con las 7 rutas.
+ *  1. El NavHost con las rutas de la aplicacion.
  *  2. La NavigationBar (bottomBar) compartida.
- *  3. El estado del carrito, que baja hacia las pantallas como parametro.
+ *  3. El estado del carrito y del usuario, que baja hacia las pantallas como parametros.
  *
  * Ninguna pantalla navega sola ni toca el carrito: solo avisa con callbacks.
  */
@@ -52,12 +53,13 @@ fun AppNavegacion() {
     // Cada par es (producto, cantidad).
     var carrito by remember { mutableStateOf<List<Pair<Producto, Int>>>(emptyList()) }
 
-    // Datos del pedido que se piden en PantallaDatosEntrega
-    // y se muestran despues en PantallaConfirmacion.
+    // Datos del pedido que se piden en PantallaDatosEntrega / PantallaCrearCuenta
+    // y se muestran despues en PantallaConfirmacion y PantallaPerfil.
     var nombreCliente by remember { mutableStateOf("") }
     var direccionCliente by remember { mutableStateOf("") }
     var referenciaCliente by remember { mutableStateOf("") }
     var metodoPago by remember { mutableStateOf("Yape") }
+    var cantidadDePedidos by remember { mutableStateOf(0) }
 
     Scaffold(
         bottomBar = {
@@ -176,6 +178,7 @@ fun AppNavegacion() {
                         direccionCliente = direccion
                         referenciaCliente = referencia
                         metodoPago = pago
+                        cantidadDePedidos++
                         // Saco Carrito y Entrega del historial: desde Confirmacion
                         // el boton atras debe llevar a Inicio, no al carrito.
                         navController.navigate(Rutas.CONFIRMACION) {
@@ -198,6 +201,26 @@ fun AppNavegacion() {
                         navController.navigate(Rutas.INICIO) {
                             popUpTo(Rutas.INICIO) { inclusive = true }
                             launchSingleTop = true
+                        }
+                    }
+                )
+            }
+
+            // 8. PERFIL
+            composable(Rutas.PERFIL) {
+                PantallaPerfil(
+                    nombre = nombreCliente,
+                    direccion = direccionCliente,
+                    referencia = referenciaCliente,
+                    cantidadDePedidos = cantidadDePedidos,
+                    onCerrarSesion = {
+                        carrito = emptyList()
+                        nombreCliente = ""
+                        direccionCliente = ""
+                        referenciaCliente = ""
+                        cantidadDePedidos = 0
+                        navController.navigate(Rutas.LOGIN) {
+                            popUpTo(0) { inclusive = true }
                         }
                     }
                 )
