@@ -6,14 +6,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Badge
@@ -29,25 +33,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.tecsup.mibodega.ui.cliente.modelo.Producto
 import com.tecsup.mibodega.ui.cliente.modelo.listaCategorias
 import com.tecsup.mibodega.ui.cliente.modelo.listaProductosFake
 import com.tecsup.mibodega.ui.componentes.ProductoCard
+import com.tecsup.mibodega.ui.theme.AzulTexto
 import com.tecsup.mibodega.ui.theme.BodegaTheme
 import com.tecsup.mibodega.ui.theme.GrisClaro
+import com.tecsup.mibodega.ui.theme.GrisTexto
 import com.tecsup.mibodega.ui.theme.VerdeBodega
 
 /**
- * Pantalla 3 de 7: Inicio / Catalogo.
- * Usa LazyRow para las categorias y LazyColumn para los productos.
+ * Pantalla 3 de 7: Inicio / Catálogo.
+ * Usa LazyRow para las categorías y LazyColumn para los productos.
  *
- * El filtro es reactivo: al cambiar categoria o busqueda, la lista
- * se recalcula sola en la siguiente recomposicion (no hay que llamar
- * a ninguna funcion a mano).
+ * El filtro es reactivo: al cambiar categoría o búsqueda, la lista
+ * se recalcula sola en la siguiente recomposición (sin funciones manuales
+ * ni LaunchedEffect).
  */
 @Composable
 fun PantallaInicio(
@@ -59,11 +68,13 @@ fun PantallaInicio(
     var categoriaSeleccionada by remember { mutableStateOf(listaCategorias.first()) }
     var textoBusqueda by remember { mutableStateOf("") }
 
-    // ---- CALCULO REACTIVO: depende de los 2 estados de arriba ----
+    // ---- CÁLCULO REACTIVO: combinación con 'Y' lógica y case-insensitive ----
+    val busquedaLimpia = textoBusqueda.trim()
     val productosFiltrados = listaProductosFake.filter { producto ->
         val coincideCategoria =
-            categoriaSeleccionada == "Todos" || producto.categoria == categoriaSeleccionada
-        val coincideBusqueda = producto.nombre.contains(textoBusqueda, ignoreCase = true)
+            categoriaSeleccionada == "Todos" || producto.categoria.equals(categoriaSeleccionada, ignoreCase = true)
+        val coincideBusqueda =
+            busquedaLimpia.isEmpty() || producto.nombre.contains(busquedaLimpia, ignoreCase = true)
         coincideCategoria && coincideBusqueda
     }
 
@@ -74,12 +85,13 @@ fun PantallaInicio(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "Mi Bodega",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
+                color = AzulTexto,
                 modifier = Modifier.weight(1f)
             )
             IconButton(onClick = onVerCarrito) {
@@ -104,17 +116,24 @@ fun PantallaInicio(
                 .padding(horizontal = 16.dp),
             placeholder = { Text("Buscar productos...") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            trailingIcon = {
+                if (textoBusqueda.isNotEmpty()) {
+                    IconButton(onClick = { textoBusqueda = "" }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Limpiar búsqueda")
+                    }
+                }
+            },
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = GrisClaro,
                 focusedContainerColor = GrisClaro,
-                unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
+                unfocusedBorderColor = Color.Transparent,
                 focusedBorderColor = VerdeBodega
             )
         )
 
-        // ---- LazyRow de categorias ----
+        // ---- LazyRow de categorías ----
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
@@ -136,28 +155,66 @@ fun PantallaInicio(
         ) {
             item {
                 Text(
-                    text = if (productosFiltrados.isEmpty()) {
-                        "No encontramos productos"
-                    } else {
-                        "Productos (${productosFiltrados.size})"
-                    },
+                    text = if (productosFiltrados.isEmpty()) "No encontramos productos" else "Productos (${productosFiltrados.size})",
                     style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = AzulTexto,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
             }
 
-            items(productosFiltrados, key = { it.id }) { producto ->
-                ProductoCard(
-                    producto = producto,
-                    onClick = { onProductoClick(producto) },
-                    onAgregar = { onAgregarProducto(producto) }
-                )
+            if (productosFiltrados.isEmpty()) {
+                item {
+                    EstadoVacioProductos()
+                }
+            } else {
+                items(productosFiltrados, key = { it.id }) { producto ->
+                    ProductoCard(
+                        producto = producto,
+                        onClick = { onProductoClick(producto) },
+                        onAgregar = { onAgregarProducto(producto) }
+                    )
+                }
             }
         }
     }
 }
 
-// Sub-composable PRIVADO: solo lo usa esta pantalla.
+// Sub-composables PRIVADOS: solo los usa esta pantalla.
+
+@Composable
+private fun EstadoVacioProductos() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 32.dp, horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Search,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = GrisTexto
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "No encontramos productos",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = AzulTexto,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Intenta buscar con otros términos o cambia la categoría seleccionada.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = GrisTexto,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
 @Composable
 private fun ChipCategoria(
     texto: String,
