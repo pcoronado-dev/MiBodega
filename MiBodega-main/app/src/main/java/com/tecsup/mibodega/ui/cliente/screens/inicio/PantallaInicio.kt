@@ -95,13 +95,13 @@ fun PantallaInicio(
                 modifier = Modifier.weight(1f)
             )
             IconButton(onClick = onVerCarrito) {
-                BadgedBox(
-                    badge = {
-                        if (cantidadCarrito > 0) {
-                            Badge { Text("$cantidadCarrito") }
-                        }
+                if (cantidadCarrito > 0) {
+                    BadgedBox(
+                        badge = { Badge { Text("$cantidadCarrito") } }
+                    ) {
+                        Icon(Icons.Default.ShoppingCart, contentDescription = "Carrito")
                     }
-                ) {
+                } else {
                     Icon(Icons.Default.ShoppingCart, contentDescription = "Carrito")
                 }
             }

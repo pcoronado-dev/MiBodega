@@ -158,6 +158,7 @@ fun AppNavegacion() {
                 PantallaCarrito(
                     carrito = carrito,
                     onVolver = { navController.popBackStack() },
+                    onIrAInicio = { navController.popBackStack() },
                     onIncrementar = { producto -> carrito = cambiarCantidad(carrito, producto.id, 1) },
                     onDecrementar = { producto -> carrito = cambiarCantidad(carrito, producto.id, -1) },
                     onEliminar = { producto -> carrito = eliminarProducto(carrito, producto.id) },

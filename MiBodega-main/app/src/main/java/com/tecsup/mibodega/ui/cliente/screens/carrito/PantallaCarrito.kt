@@ -37,20 +37,24 @@ import com.tecsup.mibodega.ui.cliente.modelo.Producto
 import com.tecsup.mibodega.ui.cliente.modelo.listaProductosFake
 import com.tecsup.mibodega.ui.componentes.BotonPrimario
 import com.tecsup.mibodega.ui.componentes.SelectorCantidad
+import com.tecsup.mibodega.ui.theme.AzulTexto
 import com.tecsup.mibodega.ui.theme.BodegaTheme
 import com.tecsup.mibodega.ui.theme.GrisClaro
+import com.tecsup.mibodega.ui.theme.GrisTexto
 import com.tecsup.mibodega.ui.theme.VerdeBodega
+import com.tecsup.mibodega.ui.utils.formatearCantidadArticulos
 
 /**
  * Pantalla 5 de 7: Mi carrito.
  * No guarda nada: recibe la lista y avisa los cambios con callbacks.
- * El subtotal y el total se calculan aqui, y se recalculan solos
+ * El subtotal y el total se calculan aquí, y se recalculan solos
  * cada vez que la lista que llega cambia.
  */
 @Composable
 fun PantallaCarrito(
     carrito: List<Pair<Producto, Int>>,
     onVolver: () -> Unit,
+    onIrAInicio: () -> Unit,
     onIncrementar: (Producto) -> Unit,
     onDecrementar: (Producto) -> Unit,
     onEliminar: (Producto) -> Unit,
@@ -58,6 +62,7 @@ fun PantallaCarrito(
 ) {
     val subtotal = carrito.sumOf { it.first.precio * it.second }
     val total = subtotal + Rutas.COSTO_DELIVERY
+    val cantidadTotalArticulos = carrito.sumOf { it.second }
 
     Column(modifier = Modifier.fillMaxSize()) {
 
@@ -70,11 +75,19 @@ fun PantallaCarrito(
             IconButton(onClick = onVolver) {
                 Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
             }
-            Text(
-                text = "Mi carrito",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+            Column {
+                Text(
+                    text = "Mi carrito",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = AzulTexto
+                )
+                Text(
+                    text = formatearCantidadArticulos(cantidadTotalArticulos),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
 
         if (carrito.isEmpty()) {
@@ -86,22 +99,29 @@ fun PantallaCarrito(
                 verticalArrangement = Arrangement.Center
             ) {
                 Icon(
-                    Icons.Default.ShoppingBasket,
+                    imageVector = Icons.Default.ShoppingBasket,
                     contentDescription = null,
-                    tint = GrisClaro,
+                    tint = GrisTexto,
                     modifier = Modifier.size(72.dp)
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
                 Text(
-                    text = "Tu carrito esta vacio",
-                    style = MaterialTheme.typography.titleMedium
+                    text = "Tu carrito está vacío",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = AzulTexto
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Agrega productos desde el inicio",
+                    text = "Agrega productos desde el inicio para comenzar tu compra.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(24.dp))
+                BotonPrimario(
+                    texto = "Ver productos",
+                    onClick = onIrAInicio
                 )
             }
         } else {
@@ -247,6 +267,7 @@ private fun CarritoPreview() {
                 listaProductosFake[2] to 1
             ),
             onVolver = {},
+            onIrAInicio = {},
             onIncrementar = {},
             onDecrementar = {},
             onEliminar = {},
